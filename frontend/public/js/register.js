@@ -100,21 +100,32 @@ function validateForm(formData) {
     const isPJ = tipo === 'PJ';
 
     // Validações básicas
-    if (!nome || nome.length < 3) errors.push('• Nome deve ter pelo menos 3 caracteres');
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('• Email inválido');
-    if (!telefone || telefone.length < 11) errors.push('• Telefone inválido');
-    if (!senha || senha.length < 6) errors.push('• Senha deve ter pelo menos 6 caracteres');
-    if (senha !== confirmacaoSenha) errors.push('• As senhas não coincidem');
-    if (!aceitouTermos) errors.push('• Você deve aceitar os termos de serviço');
+    if (!nome || nome.length < 3) errors.push('Nome deve ter pelo menos 3 caracteres');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('Email inválido');
+    if (!telefone || telefone.length < 11) errors.push('Telefone inválido');
+    if (!senha || senha.length < 6) errors.push('Senha deve ter pelo menos 6 caracteres');
+    if (senha !== confirmacaoSenha) errors.push('As senhas não coincidem');
+    if (!aceitouTermos) errors.push('Você deve aceitar os termos');
 
     // Validação de documentos
     if (isPJ) {
-        if (!cnpj || cnpj.length !== 14) errors.push('• CNPJ inválido');
+        if (!cnpj || !validarCNPJ(cnpj)) errors.push('CNPJ inválido');
     } else {
-        if (!cpf || cpf.length !== 11) errors.push('• CPF inválido');
+        if (!cpf || !validarCPF(cpf)) errors.push('CPF inválido');
     }
 
     return errors;
+}
+
+// Funções auxiliares para validar CPF/CNPJ
+function validarCPF(cpf) {
+    cpf = cpf.replace(/\D/g, '');
+    return cpf.length === 11; // Validação básica
+}
+
+function validarCNPJ(cnpj) {
+    cnpj = cnpj.replace(/\D/g, '');
+    return cnpj.length === 14; // Validação básica
 }
 
 async function makeApiRequest(formData) {
