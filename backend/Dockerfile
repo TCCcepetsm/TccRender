@@ -6,8 +6,6 @@ WORKDIR /app
 # Copiar arquivos de build
 COPY pom.xml .
 COPY src ./src
-COPY .mvn ./.mvn
-COPY mvnw .
 
 # Baixar dependências e construir
 RUN mvn clean package -DskipTests
