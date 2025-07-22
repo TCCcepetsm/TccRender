@@ -36,7 +36,6 @@ public class UsuarioController {
 	@PostMapping("/registrar")
 	public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioDTO usuarioDTO, BindingResult result) {
 		try {
-			// Validação manual adicional
 			if (result.hasErrors()) {
 				return ResponseEntity.badRequest().body(
 						result.getFieldErrors().stream()
@@ -44,29 +43,9 @@ public class UsuarioController {
 								.collect(Collectors.toList()));
 			}
 
-			// Verifica se CPF/CNPJ já existe
-			if (usuarioDTO.getCpf() != null && usuarioRepository.existsByCpf(usuarioDTO.getCpf())) {
-				return ResponseEntity.badRequest().body("CPF já cadastrado");
-			}
+			// Usar o service em vez de lógica duplicada
+			Usuario usuarioSalvo = usuarioService.registrar(usuarioDTO);
 
-			if (usuarioDTO.getCnpj() != null && usuarioRepository.existsByCnpj(usuarioDTO.getCnpj())) {
-				return ResponseEntity.badRequest().body("CNPJ já cadastrado");
-			}
-
-			// Converte DTO para entidade
-			Usuario usuario = new Usuario();
-			usuario.setNome(usuarioDTO.getNome());
-			usuario.setEmail(usuarioDTO.getEmail());
-			usuario.setTelefone(usuarioDTO.getTelefone());
-			usuario.setCpf(usuarioDTO.getCpf());
-			usuario.setCnpj(usuarioDTO.getCnpj());
-			usuario.setSenha(passwordEncoder.encode(usuarioDTO.getSenha()));
-			usuario.setRoles(Set.of(Roles.ROLE_USUARIO)); // Define role padrão
-
-			// Salva no banco
-			Usuario usuarioSalvo = usuarioRepository.save(usuario);
-
-			// Retorna resposta
 			return ResponseEntity.ok(new UsuarioResponse(
 					usuarioSalvo.getIdUsuario(),
 					usuarioSalvo.getNome(),
@@ -77,6 +56,8 @@ public class UsuarioController {
 							.map(Roles::name)
 							.collect(Collectors.toList())));
 
+		} catch (RuntimeException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
 			logger.error("Erro no registro", e);
 			return ResponseEntity.internalServerError().body("Erro interno no servidor");

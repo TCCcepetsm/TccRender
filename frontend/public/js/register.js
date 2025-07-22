@@ -72,27 +72,28 @@ async function handleRegister(event) {
 }
 
 function getFormData() {
-    const userType = document.getElementById('userType').value;
-    const isPJ = userType === 'pj';
+    const userType = document.getElementById("userType").value;
+    const isPJ = userType === "pj";
 
     const data = {
-        nome: document.getElementById('name').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        telefone: document.getElementById('phone').value.replace(/\D/g, ''),
-        senha: document.getElementById('password').value,
-        confirmacaoSenha: document.getElementById('confirmPassword').value, // Alterado para match com backend
-        aceitouTermos: document.getElementById('agreeTerms').checked, // Alterado para match com backend
+        nome: document.getElementById("name").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        telefone: document.getElementById("phone").value.replace(/\D/g, ""),
+        senha: document.getElementById("password").value,
+        confirmarSenha: document.getElementById("confirmPassword").value, // Alterado para 'confirmarSenha'
+        agreeTerms: document.getElementById("agreeTerms").checked, // Alterado para 'agreeTerms'
         tipo: userType.toUpperCase() // Garante "PJ" ou "PF"
     };
 
     if (isPJ) {
-        data.cnpj = document.getElementById('cnpj').value.replace(/\D/g, '');
+        data.cnpj = document.getElementById("cnpj").value.replace(/\D/g, "");
     } else {
-        data.cpf = document.getElementById('cpf').value.replace(/\D/g, '');
+        data.cpf = document.getElementById("cpf").value.replace(/\D/g, "");
     }
 
     return data;
 }
+
 
 function validateForm(formData) {
     const errors = [];
