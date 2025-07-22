@@ -36,7 +36,8 @@ public class SecurityConfig {
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.csrf(csrf -> csrf.disable())
 				.authorizeHttpRequests(auth -> auth
-						// 1. ROTAS QUE EXIGEM AUTENTICAÇÃO E/OU AUTORIZAÇÃO ESPECÍFICA (MAIS ESPECÍFICAS PRIMEIRO)
+						// 1. ROTAS QUE EXIGEM AUTENTICAÇÃO E/OU AUTORIZAÇÃO ESPECÍFICA (MAIS
+						// ESPECÍFICAS PRIMEIRO)
 						// Esta deve vir antes de qualquer .permitAll() que inclua /api/auth/**
 						.requestMatchers("/api/auth/validate-token").authenticated() // EXIGE TOKEN VÁLIDO
 
@@ -59,11 +60,12 @@ public class SecurityConfig {
 
 						// 2. ROTAS PÚBLICAS (NÃO EXIGEM AUTENTICAÇÃO OU AUTORIZAÇÃO)
 						// O login ('/api/auth/authenticate') DEVE estar aqui.
-						// Todas as rotas genéricas .permitAll() devem vir DEPOIS das regras específicas.
+						// Todas as rotas genéricas .permitAll() devem vir DEPOIS das regras
+						// específicas.
 						.requestMatchers("/api/auth/authenticate", // Rota de login (sem token)
-								"/api/usuarios/**",       // Criação de usuário, etc.
-								"/swagger-ui/**",         // Swagger UI
-								"/v3/api-docs/**")        // OpenAPI Docs
+								"/api/usuario/**", // Criação de usuário, etc.
+								"/swagger-ui/**", // Swagger UI
+								"/v3/api-docs/**") // OpenAPI Docs
 						// REMOVIDO: "/api/agendamentos2" daqui, pois agora é .authenticated()
 						.permitAll()
 
@@ -90,9 +92,10 @@ public class SecurityConfig {
 
 		// Configuração para produção - permite qualquer origem
 		config.setAllowedOriginPatterns(Arrays.asList("*"));
-		
+
 		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Métodos HTTP permitidos
-		config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type")); // Cabeçalhos permitidos
+		config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type")); // Cabeçalhos
+																									// permitidos
 		config.setAllowCredentials(true); // Crucial: Permite o envio de cookies/cabeçalhos de autorização
 		config.setMaxAge(3600L); // Tempo de cache para preflight requests (em segundos)
 

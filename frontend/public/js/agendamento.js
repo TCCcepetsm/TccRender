@@ -23,22 +23,11 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     try {
-      // Simulação de envio para API (substitua pelo seu endpoint real)
-      // const response = await fetch('http://localhost:3000/agendamentos', {
-      //     method: 'POST',
-      //     headers: {
-      //         'Content-Type': 'application/json',
-      //     },
-      //     body: JSON.stringify(formData)
-      // });
 
-      // Simulando delay de rede
+
       await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // Simulando resposta bem-sucedida
-      // if (!response.ok) throw new Error('Erro no servidor');
 
-      // Formatar data para exibição
       const dataFormatada = new Date(formData.data).toLocaleDateString('pt-BR');
 
       // Criar mensagem de sucesso
@@ -79,10 +68,10 @@ document.addEventListener("DOMContentLoaded", function () {
           `;
     }
     // Executa uma função após um delay em milissegundos
-setTimeout(function() {
-    window.location.href = "inicial.html";
-}, 3000); // 2000 milissegundos = 2 segundos
-    
+    setTimeout(function () {
+      window.location.href = "inicial.html";
+    }, 3000); // 2000 milissegundos = 2 segundos
+
   });
 
   // Adicionar máscara para telefone (opcional)
@@ -101,7 +90,7 @@ setTimeout(function() {
 
     e.target.value = value;
   });
-  
+
 });
 
 // Inicializa o mapa
@@ -111,18 +100,18 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 // Adiciona marcador clicável
 let marker;
 map.on('click', (e) => {
-    if (marker) map.removeLayer(marker);
-    marker = L.marker(e.latlng).addTo(map);
-    
-    // Preenche os campos ocultos
-    document.getElementById('latitude').value = e.latlng.lat;
-    document.getElementById('longitude').value = e.latlng.lng;
-    
-    // Usa Nominatim para pegar o endereço (API aberta)
-    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${e.latlng.lat}&lon=${e.latlng.lng}&format=json`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('local').value = data.display_name || "Endereço não encontrado";
-        });
+  if (marker) map.removeLayer(marker);
+  marker = L.marker(e.latlng).addTo(map);
+
+  // Preenche os campos ocultos
+  document.getElementById('latitude').value = e.latlng.lat;
+  document.getElementById('longitude').value = e.latlng.lng;
+
+  // Usa Nominatim para pegar o endereço (API aberta)
+  fetch(`https://nominatim.openstreetmap.org/reverse?lat=${e.latlng.lat}&lon=${e.latlng.lng}&format=json`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('local').value = data.display_name || "Endereço não encontrado";
+    });
 });
-    
+

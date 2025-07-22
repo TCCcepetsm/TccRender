@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Verificar se já está logado
     if (localStorage.getItem('authToken')) {
         const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-        const redirectUrl = userInfo?.roles?.includes('ROLE_ADMIN') 
-            ? '/views/inicialAdmin.html' 
+        const redirectUrl = userInfo?.roles?.includes('ROLE_ADMIN')
+            ? '/views/inicialAdmin.html'
             : '/views/inicial.html';
         window.location.href = redirectUrl;
         return;
@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Toggle PF/PJ
     document.querySelectorAll('.toggle-option').forEach(button => {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const logo = document.querySelector('.logo img');
             const isPJ = this.dataset.value === 'pj';
-            
+
             document.querySelectorAll('.toggle-option').forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
             document.getElementById('userType').value = this.dataset.value;
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('cnpjGroup').style.display = isPJ ? 'block' : 'none';
             document.getElementById('cpf').required = !isPJ;
             document.getElementById('cnpj').required = isPJ;
-            
+
             // Mudar tema e logo
             document.body.classList.toggle('theme-orange', isPJ);
             logo.src = isPJ ? '../public/images/logoAdmin.png' : '../public/images/logo.png';
@@ -119,7 +119,7 @@ function validateForm(formData) {
 }
 
 async function makeApiRequest(formData) {
-    const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuarios/registrar', {
+    const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

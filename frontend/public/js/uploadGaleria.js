@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Elementos do DOM
     const dropZone = document.querySelector('.drop-zone');
     const fileInput = document.getElementById('mediaFiles');
@@ -6,56 +6,56 @@ document.addEventListener('DOMContentLoaded', function() {
     const uploadForm = document.getElementById('uploadForm');
     const submitBtn = document.getElementById('submitBtn');
     const uploadsList = document.getElementById('uploadsList');
-    
+
     // Array para armazenar os arquivos selecionados
     let selectedFiles = [];
-    
+
     // URL base da API
     const API_BASE_URL = 'https://recorder-backend-7r85.onrender.com/api';
-    
+
     // Carrega uploads recentes
     loadRecentUploads();
-    
+
     // Event listeners para a área de drop
     dropZone.addEventListener('click', () => fileInput.click());
-    
+
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.style.backgroundColor = 'rgba(231, 125, 0, 0.2)';
     });
-    
+
     dropZone.addEventListener('dragleave', () => {
         dropZone.style.backgroundColor = 'rgba(231, 125, 0, 0.05)';
     });
-    
+
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.backgroundColor = 'rgba(231, 125, 0, 0.05)';
-        
+
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
             handleFiles(e.dataTransfer.files);
         }
     });
-    
+
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length) {
             handleFiles(fileInput.files);
         }
     });
-    
+
     // Form submit
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         if (selectedFiles.length === 0) {
             alert('Por favor, selecione pelo menos um arquivo.');
             return;
         }
-        
+
         submitBtn.disabled = true;
         submitBtn.textContent = 'Enviando...';
-        
+
         try {
             await uploadFiles();
             alert('Arquivos enviados com sucesso!');
@@ -71,16 +71,16 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.textContent = 'Enviar Arquivos';
         }
     });
-    
+
     // Função para lidar com os arquivos selecionados
     function handleFiles(files) {
         selectedFiles = Array.from(files);
         filePreview.innerHTML = '';
-        
+
         selectedFiles.forEach((file, index) => {
             const previewItem = document.createElement('div');
             previewItem.className = 'preview-item';
-            
+
             if (file.type.startsWith('image/')) {
                 const img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 previewItem.style.justifyContent = 'center';
                 previewItem.style.backgroundColor = '#f0f0f0';
             }
-            
+
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-btn';
             removeBtn.innerHTML = '&times;';
@@ -106,30 +106,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 selectedFiles.splice(index, 1);
                 handleFiles(selectedFiles);
             });
-            
+
             previewItem.appendChild(removeBtn);
             filePreview.appendChild(previewItem);
         });
     }
-    
+
     // Função para fazer upload dos arquivos
     async function uploadFiles() {
         const token = localStorage.getItem('token');
-        
+
         for (const file of selectedFiles) {
             const formData = new FormData();
             formData.append('file', file);
-            
+
             // Determinar tipo baseado no arquivo
             const tipo = file.type.startsWith('image/') ? 'FOTO' : 'VIDEO';
             formData.append('tipo', tipo);
-            
+
             // Adicionar ID do profissional se disponível
             const profissionalId = localStorage.getItem('userId');
             if (profissionalId) {
                 formData.append('profissionalId', profissionalId);
             }
-            
+
             const response = await fetch(`${API_BASE_URL}/galeria/upload`, {
                 method: 'POST',
                 headers: {
@@ -137,13 +137,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: formData
             });
-            
+
             if (!response.ok) {
                 throw new Error(`Erro no upload: ${response.status}`);
             }
         }
     }
-    
+
     // Função para carregar uploads recentes
     async function loadRecentUploads() {
         try {
@@ -154,38 +154,38 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json'
                 }
             });
-            
+
             if (!response.ok) {
                 throw new Error(`Erro ao carregar galeria: ${response.status}`);
             }
-            
+
             const uploads = await response.json();
             displayUploads(uploads);
-            
+
         } catch (error) {
             console.error('Erro ao carregar uploads:', error);
             uploadsList.innerHTML = '<p>Erro ao carregar uploads recentes.</p>';
         }
     }
-    
+
     // Função para exibir uploads
     function displayUploads(uploads) {
         uploadsList.innerHTML = '';
-        
+
         if (uploads.length === 0) {
             uploadsList.innerHTML = '<p>Nenhum upload encontrado.</p>';
             return;
         }
-        
+
         uploads.forEach(upload => {
             const item = document.createElement('div');
             item.className = 'upload-item';
-            
+
             if (upload.tipo === 'FOTO') {
                 const img = document.createElement('img');
                 img.src = upload.midiaUrl;
                 img.alt = 'Foto da galeria';
-                img.onerror = function() {
+                img.onerror = function () {
                     this.src = '/images/image-placeholder.png';
                 };
                 item.appendChild(img);
@@ -193,12 +193,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const video = document.createElement('video');
                 video.src = upload.midiaUrl;
                 video.controls = true;
-                video.onerror = function() {
+                video.onerror = function () {
                     this.innerHTML = '<p>Erro ao carregar vídeo</p>';
                 };
                 item.appendChild(video);
             }
-            
+
             const info = document.createElement('div');
             info.className = 'upload-item-info';
             info.innerHTML = `
@@ -206,18 +206,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p>${formatDate(upload.dataPostagem)}</p>
                 <button class="delete-btn" onclick="deleteUpload(${upload.id})">Excluir</button>
             `;
-            
+
             item.appendChild(info);
             uploadsList.appendChild(item);
         });
     }
-    
+
     // Função para deletar upload
-    window.deleteUpload = async function(id) {
+    window.deleteUpload = async function (id) {
         if (!confirm('Tem certeza que deseja excluir este item?')) {
             return;
         }
-        
+
         try {
             const token = localStorage.getItem('token');
             const response = await fetch(`${API_BASE_URL}/galeria/${id}`, {
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            
+
             if (response.ok) {
                 alert('Item excluído com sucesso!');
                 loadRecentUploads();
@@ -238,12 +238,12 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Erro ao excluir o item.');
         }
     };
-    
+
     // Função auxiliar para formatar data
     function formatDate(dateString) {
-        const options = { 
-            year: 'numeric', 
-            month: 'short', 
+        const options = {
+            year: 'numeric',
+            month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'

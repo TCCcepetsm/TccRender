@@ -43,7 +43,6 @@ public class AuthController {
 	private final JwtService jwtService;
 	private final AuthenticationManager authenticationManager;
 
-
 	@PostMapping("/authenticate")
 	public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
 		// 1. Autenticação básica (email/senha)
@@ -69,13 +68,9 @@ public class AuthController {
 						// Opção 1: Manter ROLE_ na resposta
 						authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())
 
-				// OU Opção 2: Remover ROLE_ para o frontend
-				/*
-				 * authorities.stream() .map(auth -> auth.getAuthority().replace("ROLE_", ""))
-				 * .collect(Collectors.toList())
-				 */
 				).build());
 	}
+
 	@PostMapping("/logout")
 	public ResponseEntity<?> logoutUser(HttpServletRequest request) {
 		// Aqui você pode invalidar o token se estiver usando blacklist
@@ -95,15 +90,16 @@ public class AuthController {
 		}
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 	}
+
 	@GetMapping("/after-login")
 	public String afterLogin() {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
 		if (auth != null && auth.getAuthorities().stream()
 				.anyMatch(a -> a.getAuthority().equals("ROLE_PROFISSIONAL"))) {
-			return "redirect:/inicialAdmin";  // Redireciona para a página do Admin/Profissional
+			return "redirect:/inicialAdmin"; // Redireciona para a página do Admin/Profissional
 		} else {
-			return "redirect:/inicial";  // Redireciona para a página padrão (ex: home.html)
+			return "redirect:/inicial"; // Redireciona para a página padrão (ex: home.html)
 		}
 	}
 }
