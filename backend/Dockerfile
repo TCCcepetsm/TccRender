@@ -1,5 +1,5 @@
 # Multi-stage build para otimizar tamanho da imagem
-FROM maven:3.8.7-jdk-17 AS build
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
 # Definir diretório de trabalho
 WORKDIR /app
