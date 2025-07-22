@@ -80,12 +80,11 @@ function getFormData() {
         email: document.getElementById('email').value.trim(),
         telefone: document.getElementById('phone').value.replace(/\D/g, ''),
         senha: document.getElementById('password').value,
-        confirmarSenha: document.getElementById('confirmPassword').value, // Alterado para confirmarSenha
-        agreeTerms: document.getElementById('agreeTerms').checked, // Alterado para agreeTerms
-        tipo: userType
+        confirmacaoSenha: document.getElementById('confirmPassword').value, // Alterado para match com backend
+        aceitouTermos: document.getElementById('agreeTerms').checked, // Alterado para match com backend
+        tipo: userType.toUpperCase() // Garante "PJ" ou "PF"
     };
 
-    // Adiciona documento conforme o tipo
     if (isPJ) {
         data.cnpj = document.getElementById('cnpj').value.replace(/\D/g, '');
     } else {
@@ -97,16 +96,16 @@ function getFormData() {
 
 function validateForm(formData) {
     const errors = [];
-    const { nome, email, cpf, cnpj, telefone, senha, confirmarSenha, agreeTerms, tipo } = formData; // Campos atualizados
-    const isPJ = tipo === 'pj';
+    const { nome, email, cpf, cnpj, telefone, senha, confirmacaoSenha, aceitouTermos, tipo } = formData;
+    const isPJ = tipo === 'PJ';
 
     // Validações básicas
     if (!nome || nome.length < 3) errors.push('• Nome deve ter pelo menos 3 caracteres');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('• Email inválido');
     if (!telefone || telefone.length < 11) errors.push('• Telefone inválido');
     if (!senha || senha.length < 6) errors.push('• Senha deve ter pelo menos 6 caracteres');
-    if (senha !== confirmarSenha) errors.push('• As senhas não coincidem'); // Campo atualizado
-    if (!agreeTerms) errors.push('• Você deve aceitar os termos de serviço'); // Campo atualizado
+    if (senha !== confirmacaoSenha) errors.push('• As senhas não coincidem');
+    if (!aceitouTermos) errors.push('• Você deve aceitar os termos de serviço');
 
     // Validação de documentos
     if (isPJ) {
@@ -119,21 +118,34 @@ function validateForm(formData) {
 }
 
 async function makeApiRequest(formData) {
-    const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    });
+    try {
+        const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
 
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Erro ao cadastrar');
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+            const errorDetails = data.message ||
+                data.error ||
+                `Erro ${response.status}: ${response.statusText}`;
+            throw new Error(errorDetails);
+        }
+
+        return response;
+    } catch (error) {
+        console.error('Erro completo:', {
+            message: error.message,
+            formData: formData,
+            stack: error.stack
+        });
+        throw new Error(error.message || 'Falha no servidor durante o cadastro');
     }
-
-    return response;
 }
 
 async function handleResponse(response, isEmpresa) {
