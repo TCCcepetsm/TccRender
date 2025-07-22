@@ -1,43 +1,27 @@
-# Multi-stage build para otimizar tamanho da imagem
+# Multi-stage build
 FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar apenas pom.xml primeiro (para cache de dependências)
-COPY backend/pom.xml .
+# Copiar arquivos de build
+COPY pom.xml .
+COPY src ./src
+COPY .mvn ./.mvn
+COPY mvnw .
 
-# Baixar dependências (será cacheado se pom.xml não mudar)
-RUN mvn dependency:go-offline -B
-
-# Copiar código fonte
-COPY backend/src ./src
-
-# Compilar aplicação
+# Baixar dependências e construir
 RUN mvn clean package -DskipTests
 
-# Estágio final - imagem de produção
-FROM openjdk:17-jdk-slim
-
-# Instalar curl para health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Criar usuário não-root para segurança
-RUN addgroup --system spring && adduser --system spring --ingroup spring
-USER spring:spring
-
-# Definir diretório de trabalho
+# Estágio de produção
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copiar JAR da etapa de build
-COPY --from=build /app/target/*.jar app.jar
+# Criar usuário não-root
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
 
-# Expor porta
+# Copiar artefato de build
+COPY --from=build --chown=spring:spring /app/target/*.jar app.jar
+
 EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/actuator/health || exit 1
-
-# Comando para executar aplicação
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
