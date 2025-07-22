@@ -88,22 +88,9 @@ public class SecurityConfig {
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration config = new CorsConfiguration();
 
-		// ✨ Ajuste das Origens Permitidas ✨
-		// O erro indica que "http://127.0.0.1:5000" está sendo bloqueado.
-		// Listar ambas as variações de localhost é bom.
-		// Adicionar o próprio backend como origem permitida é redundante e pode mascarar o problema.
-		// Se seu frontend está em http://127.0.0.1:5000, essa é a única origem que importa para o CORS.
-		config.setAllowedOrigins(Arrays.asList(
-				"http://127.0.0.1:5000",
-				"http://localhost:5000"
-		));
-
-		// Se você quisesse usar padrões (mais flexível para desenvolvimento), seria:
-		// config.setAllowedOriginPatterns(Arrays.asList(
-		//     "http://127.0.0.1:*", // Permite qualquer porta para 127.0.0.1
-		//     "http://localhost:*"  // Permite qualquer porta para localhost
-		// ));
-
+		// Configuração para produção - permite qualquer origem
+		config.setAllowedOriginPatterns(Arrays.asList("*"));
+		
 		config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Métodos HTTP permitidos
 		config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type")); // Cabeçalhos permitidos
 		config.setAllowCredentials(true); // Crucial: Permite o envio de cookies/cabeçalhos de autorização
