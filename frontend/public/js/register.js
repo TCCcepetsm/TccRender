@@ -130,6 +130,8 @@ function validarCNPJ(cnpj) {
 
 async function makeApiRequest(formData) {
     try {
+        console.log("Enviando dados:", JSON.stringify(formData, null, 2)); // Debug detalhado
+
         const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', {
             method: 'POST',
             headers: {
@@ -139,13 +141,14 @@ async function makeApiRequest(formData) {
             body: JSON.stringify(formData)
         });
 
-        const data = await response.json().catch(() => ({}));
+        const responseData = await response.json().catch(() => null);
 
         if (!response.ok) {
-            const errorDetails = data.message ||
-                data.error ||
+            console.error("Resposta de erro do servidor:", responseData); // Log detalhado
+            const errorMsg = responseData?.message ||
+                responseData?.error ||
                 `Erro ${response.status}: ${response.statusText}`;
-            throw new Error(errorDetails);
+            throw new Error(errorMsg);
         }
 
         return response;
@@ -155,7 +158,7 @@ async function makeApiRequest(formData) {
             formData: formData,
             stack: error.stack
         });
-        throw new Error(error.message || 'Falha no servidor durante o cadastro');
+        throw new Error(error.message || 'Erro ao conectar com o servidor');
     }
 }
 
