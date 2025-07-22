@@ -1,5 +1,5 @@
 // URL base da API
-const API_BASE_URL = 'http://localhost:8080/api';
+const API_BASE_URL = 'https://recorder-backend-7r85.onrender.com/api';
 
 // Carrega as imagens da galeria dinamicamente
 document.addEventListener('DOMContentLoaded', async () => {

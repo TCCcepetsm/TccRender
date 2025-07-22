@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         tbody.innerHTML = '<tr><td colspan="3">Carregando agendamentos...</td></tr>'; // Mensagem de carregamento
 
         try {
-            const response = await fetch('http://localhost:8080/api/agendamentos2/pendentes', { // Endpoint para pendentes
+            const response = await fetch("https://recorder-backend-7r85.onrender.com/api/agendamentos2/pendentes", { // Endpoint para pendentes
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

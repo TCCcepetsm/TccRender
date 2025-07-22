@@ -12,7 +12,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     try {
         // 2. Requisição de login
-        const response = await fetch('http://localhost:8080/api/auth/authenticate', {
+        const response = await fetch('https://recorder-backend-7r85.onrender.com/api/auth/authenticate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, senha: password }),

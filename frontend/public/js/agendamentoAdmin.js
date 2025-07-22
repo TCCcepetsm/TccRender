@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             // Fetch only 'PENDENTE' (pending) bookings for this admin view
-            const response = await fetch('http://localhost:8080/api/agendamentos2/pendentes', {
+            const response = await fetch('https://recorder-backend-7r85.onrender.com/api/agendamentos2/pendentes', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

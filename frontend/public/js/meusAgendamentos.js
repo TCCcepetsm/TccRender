@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const agendamentosList = document.getElementById('agendamentosList');
     const novoAgendamentoBtn = document.getElementById('novoAgendamentoBtn');
-    const API_BASE_URL = "http://localhost:8080/api"; // Ajuste para sua URL backend
+    const API_BASE_URL = "https://recorder-backend-7r85.onrender.com/api"; // Ajuste para sua URL backend
     const token = localStorage.getItem("jwtToken");
 
     if (!token) {

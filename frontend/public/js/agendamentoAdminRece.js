@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         tbody.innerHTML = '<tr><td colspan="3">Carregando agendamentos confirmados...</td></tr>'; // Placeholder de carregamento
 
         try {
-            const response = await fetch('http://localhost:8080/api/agendamentos2/confirmados', {
+            const response = await fetch("https://recorder-backend-7r85.onrender.com/api/agendamentos2/confirmados", {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',

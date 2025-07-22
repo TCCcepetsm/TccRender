@@ -53,7 +53,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         btnRecusar.disabled = true;
 
         try {
-            const response = await fetch(`http://localhost:8080/api/agendamentos2/${agendamentoId}`, { // Adjusted endpoint as per previous discussions
+            const response = await fetch(`https://recorder-backend-7r85.onrender.com/api/agendamentos2/$%7BagendamentoId%7D%5C%60%60`, { // Adjusted endpoint as per previous discussions
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw new Error('Status inválido para atualização.');
             }
 
-            const response = await fetch(`http://localhost:8080/api/agendamentos2/${apiUrlSegment}/${agendamentoId}`, {
+            const response = await fetch(`https://recorder-backend-7r85.onrender.com/api/agendamentos2/$%7BapiUrlSegment%7D/$%7BagendamentoId%7D%5C%60%60`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

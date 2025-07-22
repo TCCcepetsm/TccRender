@@ -119,7 +119,7 @@ function validateForm(formData) {
 }
 
 async function makeApiRequest(formData) {
-    const response = await fetch('http://localhost:8080/api/usuarios/registrar', {
+    const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuarios/registrar', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
