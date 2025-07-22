@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Conexão</title>
+</head>
+<body>
+    <h1>Teste de Conexão Frontend-Backend</h1>
+    
+    <button onclick="testarConexao()">Testar Conexão</button>
+    
+    <div id="resultado" style="margin-top: 20px;"></div>
+
+    <script>
+        function testarConexao() {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = "Testando conexão...";
+            
+            fetch('http://127.0.0.1:8080/api/teste-conexao')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na resposta do servidor');
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    resultadoDiv.innerHTML = "✅ Sucesso! Resposta do backend:<br>" + text;
+                })
+                .catch(error => {
+                    resultadoDiv.innerHTML = "❌ Falha na conexão:<br>" + error;
+                });
+        }
+    </script>
+</body>
+</html>

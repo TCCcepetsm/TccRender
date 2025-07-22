@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento | Empresa</title>
+    <link rel="stylesheet" href="../public/css/agendamento.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 300px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+        .map-hint {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .submit-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <a href="inicial.html">
+                    <img src="../public/images/logo.png" alt="Logo da Empresa">
+                </a>
+            </div>
+            <div class="user-info">
+                <span id="userName"></span>
+                <button id="logoutBtn">Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <h1>Novo Agendamento</h1>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="nome">Nome:</label>
+                    <input type="text" id="nome" name="nome" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mail:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="telefone">Telefone:</label>
+                    <input type="tel" id="telefone" name="telefone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="plano">Plano:</label>
+                    <select id="plano" name="plano" required>
+                        <option value="">Selecione o Plano</option>
+                        <option value="avancado">Avançado</option>
+                        <option value="intermediario">Intermediário</option>
+                        <option value="basico">Básico</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="data">Data do Jogo:</label>
+                    <input type="date" id="data" name="data" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="horario">Horário:</label>
+                    <input type="time" id="horario" name="horario" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="esporte">Esporte:</label>
+                    <select id="esporte" name="esporte" required>
+                        <option value="">Selecione o esporte</option>
+                        <option value="futebol">Futebol</option>
+                        <option value="basquete">Basquete</option>
+                        <option value="volei">Vôlei</option>
+                        <option value="tenis">Tênis</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="local">Local do Jogo:</label>
+                    <input type="text" id="local" name="local" required>
+                    <input type="hidden" id="latitude" name="latitude">
+                    <input type="hidden" id="longitude" name="longitude">
+                    <input type="hidden" id="endereco_completo" name="endereco_completo">
+                </div>
+
+                <div class="form-group">
+                    <label>Selecione no mapa:</label>
+                    <div id="map"></div>
+                    <p class="map-hint">Clique no mapa para marcar o local.</p>
+                </div>
+
+                <button type="submit" class="submit-btn">Agendar Gravação</button>
+            </form>
+
+            <div id="response"></div>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Constantes globais
+        const API_URL = "http://localhost:8080/api";
+        const BOOKING_ENDPOINT = "/agendamentos2/criar2";
+        
+        // Elementos do DOM
+        const bookingForm = document.getElementById("bookingForm");
+        const responseDiv = document.getElementById("response");
+        const userNameSpan = document.getElementById("userName");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        // Verificação de autenticação ao carregar a página
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("jwtToken");
+            const userData = JSON.parse(localStorage.getItem("userData"));
+
+            if (!token || !userData) {
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Preenche informações do usuário
+            userNameSpan.textContent = userData.nome;
+            
+            // Preenche automaticamente email se existir nos dados do usuário
+            const emailInput = document.getElementById("email");
+            if (userData.email && !emailInput.value) {
+                emailInput.value = userData.email;
+            }
+        });
+
+        // Configuração do mapa
+        const map = L.map('map').setView([-23.5505, -46.6333], 13); // São Paulo
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker;
+
+        // Evento de clique no mapa
+        map.on('click', function(e) {
+            const { lat, lng } = e.latlng;
+
+            if (marker) marker.remove();
+            marker = L.marker([lat, lng]).addTo(map);
+
+            document.getElementById("latitude").value = lat;
+            document.getElementById("longitude").value = lng;
+            
+            // Opcional: Buscar endereço completo via API de geocoding
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    const endereco = data.display_name;
+                    document.getElementById("endereco_completo").value = endereco;
+                    document.getElementById("local").value = endereco;
+                });
+        });
+
+        // Função para enviar o agendamento
+        async function submitBooking(formData) {
+            const token = localStorage.getItem("jwtToken");
+            
+            if (!token) {
+                showResponse("Faça login novamente", false);
+                window.location.href = "login.html";
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL + BOOKING_ENDPOINT, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro ao realizar agendamento");
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error("Erro:", error);
+                throw error;
+            }
+        }
+
+        // Função para mostrar mensagens de resposta
+        function showResponse(message, isSuccess) {
+            responseDiv.textContent = message;
+            responseDiv.className = isSuccess ? "success" : "error";
+        }
+
+        // Evento de submit do formulário
+        bookingForm.addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const result = await submitBooking(data);
+                showResponse("Agendamento realizado com sucesso!", true);
+                bookingForm.reset();
+                if (marker) marker.remove();
+            } catch (error) {
+                showResponse(error.message, false);
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener("click", function() {
+            localStorage.removeItem("jwtToken");
+            localStorage.removeItem("userData");
+            window.location.href = "login.html";
+        });
+    </script>
+</body>
+
+</html>

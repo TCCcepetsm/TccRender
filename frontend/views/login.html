@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Empresa</title>
+    <link rel="stylesheet" href="../public/css/login.css" />
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <img src="../public/images/logo.png" alt="Logo da Empresa" />
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="login-card">
+            <h2>Faça seu login</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" required />
+                </div>
+                <div class="input-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required />
+                </div>
+                <button type="submit" class="login-button">Entrar</button>
+            </form>
+            <div class="signup-link">
+                Não tem uma conta? <a href="register.html">Cadastre-se</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificação ao carregar a página de login
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("jwtToken");
+
+            if (token) {
+                // Verifica se o token é válido antes de redirecionar
+                fetch("http://localhost:8080/api/auth/validate-token", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.href = "inicial.html";
+                        } else {
+                            // Token inválido - limpa e mantém na página de login
+                            localStorage.removeItem("jwtToken");
+                            localStorage.removeItem("userData");
+                        }
+                    })
+                    .catch(() => {
+                        localStorage.clear();
+                    });
+            }
+        });
+        // Constantes globais
+        const API_URL = "http://localhost:8080/api";
+        const LOGIN_ENDPOINT = "/auth/authenticate";
+
+        // Elementos do DOM
+        const loginForm = document.getElementById('loginForm');
+        const emailInput = document.getElementById('email');
+        const senhaInput = document.getElementById('senha');
+
+        // Função principal de login
+        async function handleLogin(event) {
+            event.preventDefault();
+
+            const email = emailInput.value;
+            const senha = senhaInput.value;
+
+            try {
+                // 1. Faz a requisição de login
+                const response = await fetch(API_URL + LOGIN_ENDPOINT, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                // 2. Trata erros da resposta
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || "Erro desconhecido no login");
+                }
+
+                // 3. Processa a resposta bem-sucedida
+                const usuario = await response.json();
+
+                // 4. Armazena os dados do usuário (incluindo o token)
+                localStorage.setItem("jwtToken", usuario.token);
+                localStorage.setItem("userData", JSON.stringify({
+                    email: usuario.email,
+                    nome: usuario.nome,
+                    roles: usuario.roles
+                }));
+
+                // 5. Redireciona para a página inicial
+                window.location.href = "inicial.html";
+
+            } catch (error) {
+                // 6. Tratamento de erros
+                console.error("Erro no login:", error);
+                showError(error.message || "Erro ao fazer login. Tente novamente.");
+            }
+        }
+
+        // Função para exibir mensagens de erro
+        function showError(message) {
+            // Você pode substituir por um toast ou modal mais elegante
+            alert("Erro: " + message);
+
+            // Exemplo: exibir erro em um elemento específico
+            // const errorElement = document.getElementById('error-message');
+            // errorElement.textContent = message;
+            // errorElement.style.display = 'block';
+        }
+
+        // Event Listener
+        loginForm.addEventListener('submit', handleLogin);
+
+        // Opcional: Verifica se já está logado ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            if (localStorage.getItem("jwtToken")) {
+                // Se já tiver token, redireciona para a página inicial
+                window.location.href = "inicial.html";
+            }
+        });
+    </script>
+</body>
+
+</html>
