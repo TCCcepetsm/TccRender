@@ -80,9 +80,9 @@ function getFormData() {
         email: document.getElementById("email").value.trim(),
         telefone: document.getElementById("phone").value.replace(/\D/g, ""),
         senha: document.getElementById("password").value,
-        confirmarSenha: document.getElementById("confirmPassword").value, // Alterado para 'confirmarSenha'
-        agreeTerms: document.getElementById("agreeTerms").checked, // Alterado para 'agreeTerms'
-        tipo: userType.toUpperCase() // Garante "PJ" ou "PF"
+        confirmarSenha: document.getElementById("confirmPassword").value,
+        agreeTerms: document.getElementById("agreeTerms").checked,
+        tipo: userType.toUpperCase()
     };
 
     if (isPJ) {
@@ -90,6 +90,14 @@ function getFormData() {
     } else {
         data.cpf = document.getElementById("cpf").value.replace(/\D/g, "");
     }
+
+    // Log para debug
+    console.log("Dados do formulário:", data);
+    console.log("Senha:", data.senha);
+    console.log("ConfirmarSenha:", data.confirmarSenha);
+    console.log("Senhas são iguais:", data.senha === data.confirmarSenha);
+    console.log("AgreeTerms:", data.agreeTerms);
+    console.log("Tipo de agreeTerms:", typeof data.agreeTerms);
 
     return data;
 }

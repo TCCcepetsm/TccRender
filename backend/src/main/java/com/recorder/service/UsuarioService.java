@@ -29,12 +29,21 @@ public class UsuarioService {
     // ========== REGISTRO ==========
     @Transactional
     public Usuario registrar(UsuarioDTO request) {
-        // Validações básicas
-        if (!request.getSenha().equals(request.getConfirmarSenha())) {
+        // Log para debug
+        logger.info("Iniciando registro para email: {}", request.getEmail());
+        logger.info("Senha: {}, ConfirmarSenha: {}", request.getSenha(), request.getConfirmarSenha());
+        logger.info("AgreeTerms: {}", request.agreeTerms());
+
+        // Validações básicas - verificar se os campos não são nulos antes de comparar
+        if (request.getSenha() == null || request.getConfirmarSenha() == null ||
+                !request.getSenha().equals(request.getConfirmarSenha())) {
+            logger.warn("Senhas não coincidem. Senha: '{}', ConfirmarSenha: '{}'",
+                    request.getSenha(), request.getConfirmarSenha());
             throw new RuntimeException("Senha e confirmação de senha não coincidem.");
         }
 
         if (!request.agreeTerms()) {
+            logger.warn("Termos não aceitos. AgreeTerms: {}", request.agreeTerms());
             throw new RuntimeException("Você deve aceitar os termos.");
         }
 
