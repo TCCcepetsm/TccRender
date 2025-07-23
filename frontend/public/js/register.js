@@ -47,6 +47,7 @@ async function handleRegister(event) {
     event.preventDefault();
 
     const submitBtn = event.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span class="spinner"></span> Cadastrando...';
 
@@ -56,38 +57,38 @@ async function handleRegister(event) {
 
         if (errors.length > 0) {
             showError(errors.join('<br>'));
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Cadastrar';
             return;
         }
 
-        // Adicione um timeout para o processo completo
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Tempo de registro excedido')), 15000)
-        );
+        // Adiciona timeout para todo o processo
+        const registrationTimeout = setTimeout(() => {
+            showError('Tempo de registro excedido. Verifique sua conexão e tente novamente.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+        }, 35000); // 35 segundos
 
-        const response = await Promise.race([
-            makeApiRequest(formData),
-            timeoutPromise
-        ]);
+        const response = await makeApiRequest(formData);
+        clearTimeout(registrationTimeout);
 
         await handleResponse(response, formData.tipo === 'PJ');
 
     } catch (error) {
         console.error('Erro no registro:', error);
-        showError(error.message || 'Erro ao processar cadastro');
 
-        // Verifique se foi um erro de shutdown do servidor
-        if (error.message.includes('Failed to fetch') ||
-            error.message.includes('Tempo de conexão excedido')) {
-            showError('Servidor indisponível. Tente novamente mais tarde.');
-        }
+        // Mensagens mais amigáveis para o usuário
+        const userFriendlyMessages = {
+            'Failed to fetch': 'Não foi possível conectar ao servidor',
+            'Network request failed': 'Problema de conexão com a internet',
+            'AbortError': 'Tempo de conexão esgotado'
+        };
+
+        showError(userFriendlyMessages[error.name] || error.message || 'Erro durante o registro');
+
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Cadastrar';
+        submitBtn.textContent = originalBtnText;
     }
 }
-
 function getFormData() {
     const userType = document.getElementById("userType").value;
     const isPJ = userType === "pj";
@@ -158,50 +159,71 @@ async function makeApiRequest(formData) {
     try {
         console.log("Enviando dados:", JSON.stringify(formData, null, 2));
 
-        // Adicione um timeout para evitar espera infinita
+        // Configuração do timeout mais robusta
+        const TIMEOUT_DURATION = 30000; // 30 segundos
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos
+        const timeoutId = setTimeout(() => {
+            controller.abort();
+            console.warn(`Request aborted after ${TIMEOUT_DURATION / 1000} seconds`);
+        }, TIMEOUT_DURATION);
 
-        const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', {
+        // Opções da requisição
+        const requestOptions = {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify({
+                nome: formData.nome,
+                email: formData.email,
+                telefone: formData.telefone,
+                senha: formData.senha,
+                tipo: formData.tipo,
+                cnpj: formData.tipo === 'PJ' ? formData.cnpj : undefined,
+                cpf: formData.tipo === 'PF' ? formData.cpf : undefined
+            }),
             signal: controller.signal
-        });
+        };
+
+        // Remove campos não necessários
+        delete requestOptions.body.confirmarSenha;
+        delete requestOptions.body.agreeTerms;
+
+        const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', requestOptions);
 
         clearTimeout(timeoutId);
 
-        // Verifique se a resposta está OK e é JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Resposta não é JSON');
-        }
-
-        const responseData = await response.json();
-
+        // Verificação robusta da resposta
         if (!response.ok) {
-            console.error("Resposta de erro do servidor:", responseData);
-            const errorMsg = responseData?.message ||
-                responseData?.error ||
-                `Erro ${response.status}: ${response.statusText}`;
-            throw new Error(errorMsg);
+            let errorData;
+            try {
+                errorData = await response.json();
+            } catch (e) {
+                errorData = { message: await response.text() };
+            }
+
+            console.error("Detalhes do erro:", {
+                status: response.status,
+                statusText: response.statusText,
+                errorData
+            });
+
+            throw new Error(errorData.message || `Erro ${response.status}: ${response.statusText}`);
         }
 
         return response;
 
     } catch (error) {
         console.error('Erro completo:', {
+            name: error.name,
             message: error.message,
-            formData: formData,
-            stack: error.stack
+            stack: error.stack,
+            formData: formData
         });
 
-        // Tratamento específico para timeout
         if (error.name === 'AbortError') {
-            throw new Error('Tempo de conexão excedido. O servidor pode estar indisponível.');
+            throw new Error('O servidor está demorando muito para responder. Tente novamente mais tarde.');
         }
 
         throw new Error(error.message || 'Erro ao conectar com o servidor');
