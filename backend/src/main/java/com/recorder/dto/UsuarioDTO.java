@@ -32,8 +32,7 @@ public class UsuarioDTO {
     @AssertTrue(message = "Você deve aceitar os termos")
     private boolean agreeTerms;
 
-    // Getters e Setters mantidos iguais
-
+    // Getters e Setters
 
     public String getCnpj() {
         return cnpj;
@@ -56,7 +55,6 @@ public class UsuarioDTO {
     }
 
     public void setCpf(String cpf) {
-        // Remove formatação do CPF antes de armazenar
         this.cpf = cpf != null ? cpf.replaceAll("\\D", "") : null;
     }
 
@@ -65,7 +63,6 @@ public class UsuarioDTO {
     }
 
     public void setTelefone(String telefone) {
-        // Remove formatação do telefone antes de armazenar
         this.telefone = telefone != null ? telefone.replaceAll("\\D", "") : null;
     }
 
@@ -93,7 +90,7 @@ public class UsuarioDTO {
         this.confirmarSenha = confirmarSenha;
     }
 
-    public boolean agreeTerms() {
+    public boolean getAgreeTerms() { // Alterado para getAgreeTerms para compatibilidade com @AssertTrue
         return agreeTerms;
     }
 
@@ -103,10 +100,9 @@ public class UsuarioDTO {
 
     private List<String> roles;
 
-    // Método para garantir o formato ROLE_
     public List<String> getRoles() {
         if (this.roles == null) {
-            return List.of("ROLE_USUARIO"); // Valor padrão
+            return List.of("ROLE_USUARIO");
         }
         return this.roles.stream()
                 .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
@@ -114,24 +110,11 @@ public class UsuarioDTO {
     }
 
     public void setRoles(List<String> roles) {
-        this.roles = roles != null ? 
-                roles.stream()
-                        .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
-                        .collect(Collectors.toList()) : 
-                List.of("ROLE_USUARIO");
+        this.roles = roles != null ? roles.stream()
+                .map(role -> role.startsWith("ROLE_") ? role : "ROLE_" + role)
+                .collect(Collectors.toList()) : List.of("ROLE_USUARIO");
     }
 
-    // Métodos de validação melhorados
-    public void validar() {
-        if (!senhasConferem()) {
-            throw new IllegalArgumentException("Senha e confirmação não coincidem!");
-        }
-        if (!agreeTerms) {
-            throw new IllegalArgumentException("Você deve aceitar os termos!");
-        }
-    }
-
-    private boolean senhasConferem() {
-        return senha != null && senha.equals(confirmarSenha);
-    }
+    // Adicionar validação de senha customizada se necessário, mas fora do DTO
+    // Exemplo: em um validador separado ou no serviço
 }

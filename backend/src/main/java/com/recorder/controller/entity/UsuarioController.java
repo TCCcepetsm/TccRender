@@ -36,16 +36,19 @@ public class UsuarioController {
 	@PostMapping("/registrar")
 	public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioDTO usuarioDTO, BindingResult result) {
 		try {
+			// Validação das anotações Bean Validation
 			if (result.hasErrors()) {
-				return ResponseEntity.badRequest().body(
-						result.getFieldErrors().stream()
-								.map(error -> error.getDefaultMessage())
-								.collect(Collectors.toList()));
+				List<String> errors = result.getFieldErrors().stream()
+						.map(error -> error.getDefaultMessage())
+						.collect(Collectors.toList());
+				logger.warn("Erros de validação: {}", errors);
+				return ResponseEntity.badRequest().body(errors);
 			}
 
-			// Usar o service em vez de lógica duplicada
+			// Usar o UsuarioService para registrar
 			Usuario usuarioSalvo = usuarioService.registrar(usuarioDTO);
 
+			// Retorna resposta de sucesso
 			return ResponseEntity.ok(new UsuarioResponse(
 					usuarioSalvo.getIdUsuario(),
 					usuarioSalvo.getNome(),
@@ -57,9 +60,12 @@ public class UsuarioController {
 							.collect(Collectors.toList())));
 
 		} catch (RuntimeException e) {
+			// Erros de validação de negócio (email já cadastrado, senhas não coincidem,
+			// etc.)
+			logger.warn("Erro de validação de negócio: {}", e.getMessage());
 			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
-			logger.error("Erro no registro", e);
+			logger.error("Erro interno no registro", e);
 			return ResponseEntity.internalServerError().body("Erro interno no servidor");
 		}
 	}

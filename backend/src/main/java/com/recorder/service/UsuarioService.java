@@ -29,22 +29,12 @@ public class UsuarioService {
     // ========== REGISTRO ==========
     @Transactional
     public Usuario registrar(UsuarioDTO request) {
-        // Log para debug
         logger.info("Iniciando registro para email: {}", request.getEmail());
-        logger.info("Senha: {}, ConfirmarSenha: {}", request.getSenha(), request.getConfirmarSenha());
-        logger.info("AgreeTerms: {}", request.agreeTerms());
 
-        // Validações básicas - verificar se os campos não são nulos antes de comparar
-        if (request.getSenha() == null || request.getConfirmarSenha() == null ||
-                !request.getSenha().equals(request.getConfirmarSenha())) {
-            logger.warn("Senhas não coincidem. Senha: '{}', ConfirmarSenha: '{}'",
-                    request.getSenha(), request.getConfirmarSenha());
+        // Validação de senha (já que @AssertTrue não pode comparar dois campos)
+        if (!request.getSenha().equals(request.getConfirmarSenha())) {
+            logger.warn("Senhas não coincidem para email: {}", request.getEmail());
             throw new RuntimeException("Senha e confirmação de senha não coincidem.");
-        }
-
-        if (!request.agreeTerms()) {
-            logger.warn("Termos não aceitos. AgreeTerms: {}", request.agreeTerms());
-            throw new RuntimeException("Você deve aceitar os termos.");
         }
 
         // Verificar unicidade de email, CPF e CNPJ no banco de dados
