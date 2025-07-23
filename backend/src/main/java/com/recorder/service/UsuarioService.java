@@ -29,29 +29,32 @@ public class UsuarioService {
     // ========== REGISTRO ==========
     @Transactional
     public Usuario registrar(UsuarioDTO request) {
-        logger.info("Iniciando registro para email: {}", request.getEmail());
+        logger.info("DEBUG: Iniciando registro para email: {}", request.getEmail());
+        logger.info("DEBUG: Senha recebida: {}", request.getSenha());
+        logger.info("DEBUG: Confirmar Senha recebida: {}", request.getConfirmarSenha());
+        logger.info("DEBUG: agreeTerms recebido: {}", request.getAgreeTerms());
 
         // Validação de senha (já que @AssertTrue não pode comparar dois campos)
         if (!request.getSenha().equals(request.getConfirmarSenha())) {
-            logger.warn("Senhas não coincidem para email: {}", request.getEmail());
+            logger.warn("DEBUG: Senhas não coincidem para email: {}", request.getEmail());
             throw new RuntimeException("Senha e confirmação de senha não coincidem.");
         }
 
         // Verificar unicidade de email, CPF e CNPJ no banco de dados
         if (usuarioRepository.existsByEmail(request.getEmail())) {
-            logger.warn("Tentativa de registro com email já em uso: {}", request.getEmail());
+            logger.warn("DEBUG: Tentativa de registro com email já em uso: {}", request.getEmail());
             throw new RuntimeException("Email já cadastrado.");
         }
 
         if (request.getCpf() != null && !request.getCpf().trim().isEmpty() &&
                 usuarioRepository.existsByCpf(request.getCpf())) {
-            logger.warn("Tentativa de registro com CPF já em uso: {}", request.getCpf());
+            logger.warn("DEBUG: Tentativa de registro com CPF já em uso: {}", request.getCpf());
             throw new RuntimeException("CPF já cadastrado.");
         }
 
         if (request.getCnpj() != null && !request.getCnpj().trim().isEmpty() &&
                 usuarioRepository.existsByCnpj(request.getCnpj())) {
-            logger.warn("Tentativa de registro com CNPJ já em uso: {}", request.getCnpj());
+            logger.warn("DEBUG: Tentativa de registro com CNPJ já em uso: {}", request.getCnpj());
             throw new RuntimeException("CNPJ já cadastrado.");
         }
 
@@ -70,10 +73,11 @@ public class UsuarioService {
         Set<Roles> assignedRoles = new HashSet<>();
         if (request.getCnpj() != null && !request.getCnpj().trim().isEmpty()) {
             assignedRoles.add(Roles.ROLE_PROFISSIONAL);
-            logger.info("Usuário {} registrado como PROFISSIONAL (CNPJ: {})", request.getEmail(), request.getCnpj());
+            logger.info("DEBUG: Usuário {} registrado como PROFISSIONAL (CNPJ: {})", request.getEmail(),
+                    request.getCnpj());
         } else {
             assignedRoles.add(Roles.ROLE_USUARIO);
-            logger.info("Usuário {} registrado como USUARIO (CPF: {})", request.getEmail(), request.getCpf());
+            logger.info("DEBUG: Usuário {} registrado como USUARIO (CPF: {})", request.getEmail(), request.getCpf());
         }
         usuario.setRoles(assignedRoles);
 
