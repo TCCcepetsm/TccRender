@@ -105,7 +105,7 @@ function getFormData() {
 
 function validateForm(formData) {
     const errors = [];
-    const { nome, email, cpf, cnpj, telefone, senha, confirmacaoSenha, aceitouTermos, tipo } = formData;
+    const { nome, email, cpf, cnpj, telefone, senha, confirmarSenha, agreeTerms, tipo } = formData;
     const isPJ = tipo === 'PJ';
 
     // Validações básicas
@@ -113,8 +113,8 @@ function validateForm(formData) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.push('Email inválido');
     if (!telefone || telefone.length < 11) errors.push('Telefone inválido');
     if (!senha || senha.length < 6) errors.push('Senha deve ter pelo menos 6 caracteres');
-    if (senha !== confirmacaoSenha) errors.push('As senhas não coincidem');
-    if (!aceitouTermos) errors.push('Você deve aceitar os termos');
+    if (senha !== confirmarSenha) errors.push('As senhas não coincidem');
+    if (!agreeTerms) errors.push('Você deve aceitar os termos');
 
     // Validação de documentos
     if (isPJ) {
