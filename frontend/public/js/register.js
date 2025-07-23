@@ -56,15 +56,32 @@ async function handleRegister(event) {
 
         if (errors.length > 0) {
             showError(errors.join('<br>'));
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Cadastrar';
             return;
         }
 
-        const response = await makeApiRequest(formData);
-        await handleResponse(response, formData.tipo === 'pj');
+        // Adicione um timeout para o processo completo
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Tempo de registro excedido')), 15000)
+        );
+
+        const response = await Promise.race([
+            makeApiRequest(formData),
+            timeoutPromise
+        ]);
+
+        await handleResponse(response, formData.tipo === 'PJ');
 
     } catch (error) {
-        showError(error.message || 'Erro ao processar cadastro');
         console.error('Erro no registro:', error);
+        showError(error.message || 'Erro ao processar cadastro');
+
+        // Verifique se foi um erro de shutdown do servidor
+        if (error.message.includes('Failed to fetch') ||
+            error.message.includes('Tempo de conexão excedido')) {
+            showError('Servidor indisponível. Tente novamente mais tarde.');
+        }
     } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Cadastrar';
@@ -139,7 +156,11 @@ function validarCNPJ(cnpj) {
 
 async function makeApiRequest(formData) {
     try {
-        console.log("Enviando dados:", JSON.stringify(formData, null, 2)); // Debug detalhado
+        console.log("Enviando dados:", JSON.stringify(formData, null, 2));
+
+        // Adicione um timeout para evitar espera infinita
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000); // 10 segundos
 
         const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', {
             method: 'POST',
@@ -147,13 +168,22 @@ async function makeApiRequest(formData) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(formData),
+            signal: controller.signal
         });
 
-        const responseData = await response.json().catch(() => null);
+        clearTimeout(timeoutId);
+
+        // Verifique se a resposta está OK e é JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Resposta não é JSON');
+        }
+
+        const responseData = await response.json();
 
         if (!response.ok) {
-            console.error("Resposta de erro do servidor:", responseData); // Log detalhado
+            console.error("Resposta de erro do servidor:", responseData);
             const errorMsg = responseData?.message ||
                 responseData?.error ||
                 `Erro ${response.status}: ${response.statusText}`;
@@ -161,12 +191,19 @@ async function makeApiRequest(formData) {
         }
 
         return response;
+
     } catch (error) {
         console.error('Erro completo:', {
             message: error.message,
             formData: formData,
             stack: error.stack
         });
+
+        // Tratamento específico para timeout
+        if (error.name === 'AbortError') {
+            throw new Error('Tempo de conexão excedido. O servidor pode estar indisponível.');
+        }
+
         throw new Error(error.message || 'Erro ao conectar com o servidor');
     }
 }
