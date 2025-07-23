@@ -45,48 +45,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function handleRegister(event) {
     event.preventDefault();
-
     const submitBtn = event.target.querySelector('button[type="submit"]');
-    const originalBtnText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner"></span> Cadastrando...';
 
     try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Preparando...';
+
+        // Acorda o backend antes do registro
+        await wakeUpBackend();
+
+        submitBtn.innerHTML = '<span class="spinner"></span> Validando...';
         const formData = getFormData();
         const errors = validateForm(formData);
 
         if (errors.length > 0) {
-            showError(errors.join('<br>'));
-            return;
+            throw new Error(errors.join('<br>'));
         }
 
-        // Adiciona timeout para todo o processo
-        const registrationTimeout = setTimeout(() => {
-            showError('Tempo de registro excedido. Verifique sua conexão e tente novamente.');
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalBtnText;
-        }, 35000); // 35 segundos
-
+        submitBtn.innerHTML = '<span class="spinner"></span> Cadastrando...';
         const response = await makeApiRequest(formData);
-        clearTimeout(registrationTimeout);
 
         await handleResponse(response, formData.tipo === 'PJ');
 
     } catch (error) {
-        console.error('Erro no registro:', error);
-
-        // Mensagens mais amigáveis para o usuário
-        const userFriendlyMessages = {
-            'Failed to fetch': 'Não foi possível conectar ao servidor',
-            'Network request failed': 'Problema de conexão com a internet',
-            'AbortError': 'Tempo de conexão esgotado'
-        };
-
-        showError(userFriendlyMessages[error.name] || error.message || 'Erro durante o registro');
-
+        showError(error.message || 'Erro durante o registro');
     } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = originalBtnText;
+        submitBtn.textContent = 'Cadastrar';
     }
 }
 function getFormData() {
@@ -271,4 +256,22 @@ function createMessageDiv(type) {
     div.style.display = 'none';
     document.getElementById('registerForm')?.parentNode?.insertBefore(div, document.getElementById('registerForm'));
     return div;
+}
+async function wakeUpBackend() {
+    try {
+        // Primeira tentativa de wake-up
+        await fetch('https://recorder-backend-7r85.onrender.com/actuator/health', {
+            method: 'HEAD',
+            timeout: 10000
+        });
+
+        // Segunda tentativa após pequeno delay se necessário
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await fetch('https://recorder-backend-7r85.onrender.com/actuator/health', {
+            method: 'GET',
+            timeout: 10000
+        });
+    } catch (error) {
+        console.log('Wake-up call falhou, continuando mesmo assim...');
+    }
 }
