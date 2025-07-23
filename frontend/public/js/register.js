@@ -160,7 +160,7 @@ async function makeApiRequest(formData) {
 
         // Adicione um timeout para evitar espera infinita
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3000); // 10 segundos
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos
 
         const response = await fetch('https://recorder-backend-7r85.onrender.com/api/usuario/registrar', {
             method: 'POST',
